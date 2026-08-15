@@ -1,3 +1,4 @@
+import docx
 import streamlit as st
 import google.generativeai as genai
 from docxtpl import DocxTemplate
