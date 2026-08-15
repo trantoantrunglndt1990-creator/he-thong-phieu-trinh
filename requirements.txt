@@ -2,3 +2,4 @@ streamlit
 google-generativeai
 docxtpl
 pandas
+python-docx
