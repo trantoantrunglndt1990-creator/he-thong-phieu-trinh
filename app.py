@@ -27,32 +27,37 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.header("1. Tải tài liệu nguồn")
-    uploaded_file = st.file_uploader("Tải công văn, tờ trình... (PDF, TXT)", type=["txt", "pdf"])
+    uploaded_file = st.file_uploader("Tải công văn, tờ trình... (PDF, TXT, DOCX)", type=["txt", "pdf", "docx"])
 
-    if uploaded_file and st.button("🚀 Phân tích & Trích xuất"):
-        with st.spinner("Đang đọc tài liệu..."):
+if uploaded_file and st.button("🚀 Phân tích & Trích xuất"):
+    with st.spinner("Đang đọc tài liệu..."):
+        prompt = """
+        Đóng vai một chuyên viên hành chính mẫn cán. Đọc tài liệu đính kèm và trích xuất thông tin:
+        1. noi_dung_trinh: Tên sự việc chính cần trình Lãnh đạo.
+        2. can_cu_phap_ly: Liệt kê số hiệu, ngày, tên cơ quan của các văn bản liên quan.
+        3. tom_tat_nhiem_vu: Tóm tắt ngắn gọn yêu cầu, nhiệm vụ (1-2 câu).
+        4. thoi_han: Thời hạn hoàn thành (nếu có, không có ghi "Không quy định").
+        5. de_xuat_giai_quyet: Tên văn bản đề xuất Lãnh đạo ký.
+        Trả về DUY NHẤT một chuỗi JSON hợp lệ: 
+        {"noi_dung_trinh": "...", "can_cu_phap_ly": "...", "tom_tat_nhiem_vu": "...", "thoi_han": "...", "de_xuat_giai_quyet": "..."}
+        """
+
+        # Xử lý riêng nếu file tải lên là Word (.docx)
+        if uploaded_file.name.endswith(".docx"):
+            doc_reader = docx.Document(uploaded_file)
+            file_content = "\n".join([para.text for para in doc_reader.paragraphs])
+            response = model.generate_content([file_content, prompt])
+        # Xử lý nếu là file PDF hoặc TXT
+        else:
             file_bytes = uploaded_file.read()
-            
-            prompt = """
-            Đóng vai một chuyên viên hành chính mẫn cán. Đọc tài liệu đính kèm và trích xuất thông tin:
-            1. noi_dung_trinh: Tên sự việc chính cần trình Lãnh đạo.
-            2. can_cu_phap_ly: Liệt kê số hiệu, ngày, tên cơ quan của các văn bản liên quan.
-            3. tom_tat_nhiem_vu: Tóm tắt ngắn gọn yêu cầu, nhiệm vụ (1-2 câu).
-            4. thoi_han: Thời hạn hoàn thành (nếu có, không có ghi "Không quy định").
-            5. de_xuat_giai_quyet: Tên văn bản đề xuất Lãnh đạo ký.
-            Trả về DUY NHẤT một chuỗi JSON hợp lệ: 
-            {"noi_dung_trinh": "...", "can_cu_phap_ly": "...", "tom_tat_nhiem_vu": "...", "thoi_han": "...", "de_xuat_giai_quyet": "..."}
-            """
-            
             response = model.generate_content([
                 {"mime_type": uploaded_file.type, "data": file_bytes},
                 prompt
             ])
-            
-            raw_text = response.text.replace("```json", "").replace("```", "").strip()
-            st.session_state.temp_data = json.loads(raw_text)
-            st.success("Phân tích thành công! Mời bạn rà soát ở bảng bên cạnh.")
 
+        raw_text = response.text.replace("```json", "").replace("```", "").strip()
+        st.session_state.temp_data = json.loads(raw_text)
+        st.success("Phân tích thành công! Mời bạn rà soát ở bảng bên cạnh.")
 with col2:
     st.header("2. Hoàn thiện Phiếu trình")
     if 'temp_data' in st.session_state:
