@@ -44,20 +44,25 @@ if uploaded_file and st.button("🚀 Phân tích & Trích xuất"):
 
         # Xử lý riêng nếu file tải lên là Word (.docx)
         if uploaded_file.name.endswith(".docx"):
-            doc_reader = docx.Document(uploaded_file)
-            file_content = "\n".join([para.text for para in doc_reader.paragraphs])
-            response = model.generate_content([file_content, prompt])
-        # Xử lý nếu là file PDF hoặc TXT
-        else:
-            file_bytes = uploaded_file.read()
-            response = model.generate_content([
-                {"mime_type": uploaded_file.type, "data": file_bytes},
-                prompt
-            ])
-
-        raw_text = response.text.replace("```json", "").replace("```", "").strip()
-        st.session_state.temp_data = json.loads(raw_text)
-        st.success("Phân tích thành công! Mời bạn rà soát ở bảng bên cạnh.")
+               doc_reader = docx.Document(uploaded_file)
+               
+               # Lấy chữ từ các đoạn văn bình thường
+               text_data = [para.text for para in doc_reader.paragraphs if para.text.strip()]
+               
+               # Lấy thêm chữ từ các bảng biểu (nếu có)
+               for table in doc_reader.tables:
+                   for row in table.rows:
+                       for cell in row.cells:
+                           if cell.text.strip():
+                               text_data.append(cell.text.strip())
+                               
+               file_content = "\n".join(text_data)
+               
+               # Cảnh báo nếu file Word trống
+               if not file_content:
+                   st.error("⚠️ File Word của bạn đang trống hoặc hệ thống không thể đọc được chữ bên trong!")
+               else:
+                   response = model.generate_content([file_content, prompt])
 with col2:
     st.header("2. Hoàn thiện Phiếu trình")
     if 'temp_data' in st.session_state:
