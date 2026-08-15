@@ -17,8 +17,7 @@ if not api_key:
     st.stop()
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
-
+model = genai.GenerativeModel("models/gemini-1.5-flash")
 # 2. Khởi tạo Bảng Danh mục công việc
 if 'danh_muc' not in st.session_state:
     st.session_state.danh_muc = pd.DataFrame(columns=["Ngày", "Số Phiếu", "Nội dung công việc", "Thời hạn", "Trạng thái"])
