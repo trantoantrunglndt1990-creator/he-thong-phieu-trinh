@@ -17,9 +17,9 @@ if not api_key:
     st.error("⚠️ Lỗi: Chưa cấu hình GEMINI_API_KEY. Vui lòng kiểm tra lại cài đặt Secrets trên Streamlit Cloud.")
     st.stop()
 
-# Khởi tạo mô hình
+# Khởi tạo mô hình - ĐÃ CẬP NHẬT TÊN MÔ HÌNH CHUẨN ĐỂ SỬA LỖI 404
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
 # 2. Khởi tạo Bảng Danh mục công việc lưu trữ tạm thời
 if 'danh_muc' not in st.session_state:
@@ -86,7 +86,7 @@ with col1:
                 # Bắt mọi lỗi và hiển thị thông báo tiếng Việt
                 st.error(f"❌ Có lỗi xảy ra trong quá trình AI phân tích.")
                 st.error(f"Chi tiết lỗi kỹ thuật: {str(e)}")
-                st.info("💡 Gợi ý: Máy chủ Google có thể đang bận hoặc file tải lên bị lỗi cấu trúc. Hãy thử bấm phân tích lại.")
+                st.info("💡 Gợi ý: Hãy thử tải lại trang hoặc kiểm tra kết nối mạng.")
 
 with col2:
     st.header("2. Hoàn thiện Phiếu trình")
